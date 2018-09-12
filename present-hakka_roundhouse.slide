@@ -181,6 +181,51 @@ Now you have two parts that can break.
 - The updated hakka roundhouse monolith, which you need to tell where to find the new SumService
 - gRPC-based SumService
 
+* Publish / Subcribe with a monolith
+Actually pub / sub with a monolith *and* a message broker like NATS.
+
+Pub / Sub enables you to loosely couple components.
+A publisher can publish to zero or more subscribers.
+
+Let's reimplement our sum service with pub / sub.
+
+* Pre-requisites - start a message broker
+
+Download NATS, unzip and install it in your $PATH
+
+.link https://github.com/nats-io/gnatsd/releases/download/v1.3.0/gnatsd-v1.3.0-linux-amd64.zip
+
+  ~/go/bin/gnatsd
+
+* monolith with NATS
+
+imports
+
+.code cmd/hakkanats/main.go /10 O/,/20 O/
+
+main()
+
+.code cmd/hakkanats/main.go /30 O/,/40 O/
+
+We again have two services, sumService subscriber and a loadGen publisher.
+
+* loadGen
+
+.code cmd/hakkanats/main.go /50 O/,/60 O/
+
+* sumService
+
+.code cmd/hakkanats/main.go /70 O/,/80 O/
+
+Note subscribe runs a function as a goroutine.
+
+* Running our nats enabled monolith
+
+  go run cmd/hakkanats/main.go
+
+
+
+
 * presentation and code download
 
 .link https://github.com/siuyin/present-hakka_roundhouse
