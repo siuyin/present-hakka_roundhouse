@@ -11,16 +11,16 @@ siuyin@beyondbroadcast.com
 .image hakka-roundhouse.jpg
 
 
-* Hakka Roundhouse
+* Hakka Roundhouses
 
-- tens of families within a clan live in the house
+- tens of families within a clan live in each house
 - closed to the outside, open on the inside
 - issues within an indivdual house are an internal matter -- "easily" solved
 - issues across roundhouses less easily solved -- war?
 
 * Microservice ready monolith
 
-- many software modules can "live" within the monolith
+- many software modules can "live" within a monolith
 - these modules "live" within a single software repository
 - communications within monolith is fast and reliable
 - communications with systems outside the monolith relies on the network with networking lack of guarantees
