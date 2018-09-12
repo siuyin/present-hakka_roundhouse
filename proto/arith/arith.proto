@@ -1,0 +1,18 @@
+//10 OMIT
+syntax = "proto3";
+
+message SumRequest {
+	int32 a = 1;
+	int32 b = 2;
+}
+
+message SumResponse {
+	int32 result = 1;
+}
+//20 OMIT
+//30 OMIT
+service Arith {
+	rpc Sum (SumRequest) returns (SumResponse) {}
+}
+//40 OMIT
+

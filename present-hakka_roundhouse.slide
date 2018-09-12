@@ -1,0 +1,180 @@
+Hakka Roundhouse
+A microservices ready monolith
+12 Sep 2018
+
+Loh Siu Yin
+Technology Consultant, Beyond Broadcast LLP
+siuyin@beyondbroadcast.com
+
+* Hakka Roundhouse
+
+.image hakka-roundhouse.jpg
+
+
+* Hakka Roundhouse
+
+- tens of families within a clan live in the house
+- closed to the outside, open on the inside
+- issues within an indivdual house are an internal matter -- "easily" solved
+- issues across roundhouses less easily solved -- war?
+
+* Microservice ready monolith
+
+- many software modules can "live" within the monolith
+- these modules "live" within a single software repository
+- communications within monolith is fast and reliable
+- communications with systems outside the monolith relies on the network with networking lack of guarantees
+- as needs demand, a software module (sub-folder) can be forked to a separate repo and takes on a life of its own.
+
+* Implementation details
+
+- *go* already has a fantastic internal communication process -- go channels
+- gRPC is a robust, efficient and performant Remote Procedure Call framework
+- use gRPC generated *messages* in go routines
+- leave gRPC generated *rpc* s for future use
+
+* Traditional monolith
+
+.play -edit cmd/trad/main.go
+
+* Hakka Roundhouse monolith
+
+.code cmd/hakka/main.go
+
+Wait a minute! What is this pb stuff ?
+
+* gRPC protocol buffers
+
+- This code uses go modules. The initial go.mod is:
+
+  module github.com/siuyin/present-hakka_roundhouse
+
+- Download, extract and install protoc in you $PATH.
+
+.link https://github.com/google/protobuf/releases
+
+- Tell go modules about the grpc dependencies
+
+  go get google.golang.org/grpc
+  go get github.com/golang/protobuf/protoc-gen-go
+
+* .proto file
+- A .proto file defines the contract between servers and clients.
+
+- In our case we are not (yet) defining a remote procedure call server. We are just going to use the generated message definitions.
+
+- Start by thinking about the package name to group the messages under.
+
+In this case I chose the package name arith (for arithmetic).
+file: proto/arith/arith.proto
+
+.code proto/arith/arith.proto /10 O/,/20 O/
+
+* Generating gRPC stubs
+
+  protoc -I proto/arith arith.proto --go_out=plugins=grpc:proto/arith
+
+Notes:
+ -I : Include these folders when looking for .proto files
+
+arith.proto : The .proto file we are compiling into stub files
+
+--go_out : generate grpc stubs and place them in the proto/arith folder
+
+Let's generate the stub files and look at the results:
+
+  protoc -I proto/arith arith.proto --go_out=plugins=grpc:proto/arith
+  ls -lR proto
+
+We can also keep the command string in the source and do:
+
+  go generate cmd/hakka/main.go
+  ls -lR proto
+
+* Running our new monolith
+
+.code cmd/hakka/main.go
+
+Demo:
+
+  go run cmd/hakka/main.go
+
+* Let's make it a service
+
+Add two random integers and present the results once a second.
+
+.code cmd/hakkasvc/main.go /10 O/,/20 O/
+
+We have two services here:
+
+- A load generator service that generate two random integers
+- A sumService which adds the integers
+
+* Load generator service
+
+.code cmd/hakkasvc/main.go /30 O/,/40 O/
+
+1. Create a request object
+
+2. Send a reference to that object into the channel
+
+* sumService
+
+.code cmd/hakkasvc/main.go /50 O/,/60 O/
+
+1. read request from the channel
+2. create a response and send its reference
+
+* Running the service monolith
+
+  go run cmd/hakkasvc/main.go
+
+* Making sumService a microservice
+
+Steps:
+
+- Update arith.proto to define the SumService interface
+- Implement Sum microservice
+- Update monolith to call the new SumService
+
+* arith.proto service definition
+
+.code proto/arith/arith.proto /30 O/,/40 O/
+
+* Sum microservice
+
+.code grpc/arith/main.go /10 O/,/20 O/
+
+1. As usual, we import our generated protocol buffer stub package
+2. For convenience, we have our go generate statement in the source as well.
+3. We need to define a port as this is now a network call.
+
+* Service implementation
+
+.code grpc/arith/main.go /30 O/,/40 O/
+
+compare with the .proto
+
+.code proto/arith/arith.proto /30 O/,/40 O/
+
+* Server main()
+
+.code grpc/arith/main.go /50 O/,/60 O/
+Let's run the service
+
+  go run grpc/arith/main.go
+
+* Updated monolith sumService
+
+.code cmd/hakkasvc2/main.go /52 O/,/53 O/
+
+* Running the updated monolith
+
+This will now call our new gRPC based Sum service
+
+  go run cmd/hakkasvc2/main.go
+
+
+* presentation and code download
+
+.link https://github.com/siuyin/present-hakka_roundhouse
