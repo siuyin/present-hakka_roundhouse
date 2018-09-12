@@ -39,6 +39,8 @@ siuyin@beyondbroadcast.com
 
 * Hakka Roundhouse monolith
 
+* Hakka Roundhouse monolith
+
 .code cmd/hakka/main.go
 
 Wait a minute! What is this pb stuff ?
@@ -99,6 +101,8 @@ Demo:
 
   go run cmd/hakka/main.go
 
+* That's not a service!
+
 * Let's make it a service
 
 Add two random integers and present the results once a second.
@@ -128,6 +132,8 @@ We have two services here:
 * Running the service monolith
 
   go run cmd/hakkasvc/main.go
+
+* Extracting a microservice
 
 * Making sumService a microservice
 
@@ -180,6 +186,8 @@ Now you have two parts that can break.
 
 - The updated hakka roundhouse monolith, which you need to tell where to find the new SumService
 - gRPC-based SumService
+
+* Publish / Subscribe
 
 * Publish / Subcribe with a monolith
 Actually pub / sub with a monolith *and* a message broker like NATS.
