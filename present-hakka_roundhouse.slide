@@ -61,11 +61,11 @@ Wait a minute! What is this pb stuff ?
 * .proto file
 - A .proto file defines the contract between servers and clients.
 
-- In our case we are not (yet) defining a remote procedure call server. We are just going to use the protoc generated message definitions.
+- In our case we are not (yet) defining a remote procedure call server. We are just going to use protoc generated message definitions.
 
 - Start by thinking about the package name you will use to group messages.
 
-I chose the package name arith (for arithmetic).
+I chose package name *arith* (for arithmetic).
 file: proto/arith/arith.proto
 
 .code proto/arith/arith.proto /10 O/,/20 O/
