@@ -54,7 +54,8 @@ func sumService(requestCh chan *pb.SumRequest) chan *pb.SumResponse {
 			// Set up a connection to the server.
 			conn, err := grpc.Dial(address, grpc.WithInsecure())
 			if err != nil {
-				log.Fatalf("did not connect: %v", err)
+				log.Printf("did not connect: %v", err)
+				continue
 			}
 			defer conn.Close()
 
@@ -62,7 +63,8 @@ func sumService(requestCh chan *pb.SumRequest) chan *pb.SumResponse {
 			// Contact the server and print out its response.
 			res, err := c.Sum(context.Background(), req) // HL
 			if err != nil {
-				log.Fatalf("could not compute sum: %v", err)
+				log.Printf("could not compute sum: %v", err)
+				continue
 			}
 
 			ch <- res // 3 // HL
