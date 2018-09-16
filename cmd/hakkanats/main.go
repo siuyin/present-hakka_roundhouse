@@ -9,9 +9,16 @@ import (
 	//10 OMIT
 	"github.com/nats-io/go-nats"
 	"github.com/nats-io/go-nats/encoders/protobuf"
+	"github.com/siuyin/dflt"
 	pb "github.com/siuyin/present-hakka_roundhouse/proto/arith"
 	//20 OMIT
 )
+
+var natsURL string
+
+func init() {
+	natsURL = dflt.EnvString("NATS_URL", "nats://localhost:4222")
+}
 
 //30 OMIT
 //go:generate protoc -I ../../proto/arith arith.proto --go_out=plugins=grpc:../../proto/arith
@@ -25,7 +32,7 @@ func main() {
 //40 OMIT
 //50 OMIT
 func loadGen() {
-	nc, err := nats.Connect(nats.DefaultURL)
+	nc, err := nats.Connect(natsURL)
 	if err != nil {
 		log.Fatalf("loadGen conn: %v", err)
 	}
@@ -49,7 +56,7 @@ func loadGen() {
 //60 OMIT
 //70 OMIT
 func sumService() {
-	nc, err := nats.Connect(nats.DefaultURL)
+	nc, err := nats.Connect(natsURL)
 	if err != nil {
 		log.Fatalf("sum conn: %v", err)
 	}
