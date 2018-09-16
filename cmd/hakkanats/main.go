@@ -17,7 +17,6 @@ import (
 //go:generate protoc -I ../../proto/arith arith.proto --go_out=plugins=grpc:../../proto/arith
 func main() {
 	fmt.Println("hakka roundhouse pub/sub service")
-	nats.RegisterEncoder("protobuf", &protobuf.ProtobufEncoder{})
 	sumService() // 1 // HL
 	loadGen()    // 2 // HL
 	select {}    // wait forever
@@ -30,7 +29,7 @@ func loadGen() {
 	if err != nil {
 		log.Fatalf("loadGen conn: %v", err)
 	}
-	c, err := nats.NewEncodedConn(nc, "protobuf")
+	c, err := nats.NewEncodedConn(nc, protobuf.PROTOBUF_ENCODER)
 	if err != nil {
 		log.Fatalf("loadGen encoded conn: %v", err)
 	}
@@ -54,7 +53,7 @@ func sumService() {
 	if err != nil {
 		log.Fatalf("sum conn: %v", err)
 	}
-	c, err := nats.NewEncodedConn(nc, "protobuf")
+	c, err := nats.NewEncodedConn(nc, protobuf.PROTOBUF_ENCODER)
 	if err != nil {
 		log.Fatalf("sum encoded conn: %v", err)
 	}
