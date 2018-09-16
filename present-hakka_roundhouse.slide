@@ -133,6 +133,18 @@ We have two services here:
 
   go run cmd/hakkasvc/main.go
 
+And it is truly a fully self-contained static binary file
+
+  time CGO_ENABLED=0 go build -o hs -v cmd/hakkasvc/main.go
+  file hs
+  ls -lhF hs
+
+And it is cross-platform
+
+  time CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o hs.exe -v cmd/hakkasvc/main.go
+  file hs.exe
+  ls -lhF hs.exe
+
 * Extracting a microservice
 
 * Making sumService a microservice
