@@ -60,6 +60,11 @@ Wait a minute! What is this pb stuff ?
   go get google.golang.org/grpc
   go get github.com/golang/protobuf/protoc-gen-go
 
+If you have just cloned a repo, download dependencies with:
+
+  go mod download
+
+
 * .proto file
 - A .proto file defines the contract between servers and clients.
 
