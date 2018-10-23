@@ -191,6 +191,10 @@ Let's run the service
 
 .code cmd/hakkasvc2/main.go /52 O/,/53 O/
 
+* gRPCSum
+
+.code cmd/hakkasvc2/main.go /70 O/,/80 O/
+
 * Running the updated monolith
 
 This will now call our new gRPC based Sum service

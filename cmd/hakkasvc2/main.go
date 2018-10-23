@@ -46,27 +46,14 @@ func loadGen(requestCh chan *pb.SumRequest) {
 func sumService(requestCh chan *pb.SumRequest) chan *pb.SumResponse {
 	ch := make(chan *pb.SumResponse)
 	// 52 OMIT
-	const address = "localhost:50051" // 0 // HL
 	go func() {
 		for {
-
-			req := <-requestCh // 1 // HL
-			// Set up a connection to the server.
-			conn, err := grpc.Dial(address, grpc.WithInsecure())
+			req := <-requestCh       // 1 // HL
+			res, err := gRPCSum(req) // 2 // HL
 			if err != nil {
-				log.Printf("did not connect: %v", err)
+				log.Printf("sumService: %s", err)
 				continue
 			}
-			defer conn.Close()
-
-			c := pb.NewArithClient(conn) // 2  // HL
-			// Contact the server and print out its response.
-			res, err := c.Sum(context.Background(), req) // HL
-			if err != nil {
-				log.Printf("could not compute sum: %v", err)
-				continue
-			}
-
 			ch <- res // 3 // HL
 		}
 	}()
@@ -75,3 +62,24 @@ func sumService(requestCh chan *pb.SumRequest) chan *pb.SumResponse {
 }
 
 // 60 OMIT
+
+// 70 OMIT
+func gRPCSum(req *pb.SumRequest) (*pb.SumResponse, error) {
+	const address = "localhost:50051" // 0 // HL
+
+	conn, err := grpc.Dial(address, grpc.WithInsecure()) // 1 // HL
+	if err != nil {
+		return nil, fmt.Errorf("could not connect to server: %s", err)
+	}
+	defer conn.Close()
+
+	c := pb.NewArithClient(conn)                 // 2  // HL
+	res, err := c.Sum(context.Background(), req) // HL
+	if err != nil {
+		return nil, fmt.Errorf("could not compute sum: %s", err)
+	}
+
+	return res, nil // 3 // HL
+}
+
+// 80 OMIT
