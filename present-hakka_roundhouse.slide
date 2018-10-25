@@ -13,29 +13,45 @@ siuyin@beyondbroadcast.com
 
 * Hakka Roundhouse
 
-- tens of families within a clan live in each house
-- closed to the outside, open on the inside
-- issues within an indivdual house are an internal matter -- "easily" solved
-- issues across roundhouses less easily solved -- war?
+- Tens of families within a clan live in each house
+- Closed to the outside, open on the inside
+- Issues within an indivdual house are an internal matter -- "easily" solved
+- Issues across roundhouses less easily solved -- war?
 
-* Microservice ready monolith
+---
 
-- many software modules can "live" within a monolith
-- these modules "live" within a single software repository
-- communications within monolith is fast and reliable
-- communications with systems outside the monolith relies on the network with networking lack of guarantees
-- as needs demand, a software module (sub-folder) can be forked to a separate repo and takes on a life of its own.
+What are the pros and cons of _software_ monoliths?  
 
-* Implementation details
+* Microservice ready monolith?
 
-- *go* already has a fantastic internal communication process -- go channels
-- gRPC is a robust, efficient and performant Remote Procedure Call framework
-- use gRPC generated *messages* in go routines
-- leave gRPC generated *rpc* s for future use
+- Can many software modules can "live" within a monolith?
+- _Should_ these modules "live" within a single software repository?
+- Communications within a monolith is certainly fast and reliable
+- But communications with systems outside the monolith relies on the network with ensuing networking lack of guarantees
+- As needs demand, can a software module (sub-folder) can be forked perhaps to a separate repo for it to take on a life of its own?
+
+* Can we build micro-service ready monoliths?
+
+- *go* has a built-in internal communication process between goroutines -- go channels
+
+---
+
+- gRPC is a robust, efficient and performant Remote Procedure Call library
+- gRPC tools generate *message* types and function stubs for RPCs
+
+
+- How can we use the message types generate in our goroutines?
+- What do we do with gRPC generated *rpc* stubs? Future use?
 
 * Traditional monolith
 
 .play -edit cmd/trad/main.go
+
+---
+
+Why do software monoliths typically grow into an unmanageble mess?
+Consider function signatures. Are there any constraints on what they can be?
+_Too_ much freedom?
 
 * Hakka Roundhouse monolith
 
@@ -43,11 +59,15 @@ siuyin@beyondbroadcast.com
 
 .code cmd/hakka/main.go
 
-Wait a minute! What is this pb stuff ?
+Wait a minute! What is this pb stuff? Ignore that for the time being.
+What is the function signature? Is there loss of freedom? loss of capability?
+
+* A quick detour -- go modules
 
 * gRPC protocol buffers
 
-- This code uses go modules. The initial go.mod is:
+- This code uses go modules -- the new dependency management experiment.
+The initial go.mod is:
 
   module github.com/siuyin/present-hakka_roundhouse
 
@@ -66,18 +86,18 @@ If you have just cloned a repo, download dependencies with:
 
 
 * .proto file
-- A .proto file defines the contract between servers and clients.
+- A .proto file defines the contract (interface) between servers and clients.
 
 - In our case we are not (yet) defining a remote procedure call server. We are just going to use protoc generated message definitions.
 
-- Start by thinking about the package name you will use to group messages.
+- Start by thinking about the package name (responsibility / role) you will use to group messages.
 
-I chose package name *arith* (for arithmetic).
+I chose package name *arith* (for arithmetic to handle sum, multiply, divide ...).
 file: proto/arith/arith.proto
 
 .code proto/arith/arith.proto /10 O/,/20 O/
 
-* Generating gRPC stubs
+* Let us generate gRPC message types and function stubs
 
   protoc -I proto/arith arith.proto --go_out=plugins=grpc:proto/arith
 
@@ -119,6 +139,8 @@ We have two services here:
 - A load generator service that generate two random integers
 - A sumService which adds the integers
 
+* Who here are new to goroutines and channels?
+
 * Load generator service
 
 .code cmd/hakkasvc/main.go /30 O/,/40 O/
@@ -150,6 +172,11 @@ And it is cross-platform
   file hs.exe
   ls -lhF hs.exe
 
+---
+
+Think about how this single go binary is deployed.
+They are like self-contained jars from java but do not need a JVM to run.
+
 * Extracting a microservice
 
 * Making sumService a microservice
@@ -164,15 +191,23 @@ Steps:
 
 .code proto/arith/arith.proto /30 O/,/40 O/
 
-* Sum microservice
+This says:
+
+- The service Arith can have many functions. One of them is called Sum.
+- Sum takes a SumRequest message as input.
+- Sum returns a SumResponse message as output.
+
+* Sum microservice. File: {servicename}/main.go
 
 .code grpc/arith/main.go /10 O/,/20 O/
 
 1. As usual, we import our generated protocol buffer stub package
 2. For convenience, we have our go generate statement in the source as well.
-3. We need to define a port as this is now a network call.
+3. We need to define a port as this is now a network call. I have chosen to listen on port 50051 on all interfaces -- that is what ":50051" means.
 
 * Service implementation
+
+gRPC tools only generate program stubs. You still need to write the implementation.
 
 .code grpc/arith/main.go /30 O/,/40 O/
 
@@ -180,9 +215,14 @@ compare with the .proto
 
 .code proto/arith/arith.proto /30 O/,/40 O/
 
+Sum takes a (context and a request) and returns a (response and error status). 
+
+Context?
+
 * Server main()
 
 .code grpc/arith/main.go /50 O/,/60 O/
+
 Let's run the service
 
   go run grpc/arith/main.go
@@ -191,9 +231,17 @@ Let's run the service
 
 .code cmd/hakkasvc2/main.go /52 O/,/53 O/
 
+gRPC returns both a response and an error status
+
+go forces you to consider how to handle error conditions in the mainline of your code. 
+Is this good? bad?
+
 * gRPCSum
 
 .code cmd/hakkasvc2/main.go /70 O/,/80 O/
+
+0, 1: Who do you call?
+2: Instantiate _gRPC-generated_ Client and use it to call the service.
 
 * Running the updated monolith
 
@@ -207,6 +255,21 @@ Now you have two parts that can break.
 
 - The updated hakka roundhouse monolith, which you need to tell where to find the new SumService
 - gRPC-based SumService
+
+* Synchronous vs Asynchronous
+
+- RPCs are synchronous like telephone calls.
+
+- Event Sourcing, Event driven systems are asynchronous like email.
+
+---
+
+Which do you prefer?
+When do you use on or the other?
+These are questions for another time.
+
+But now lets focus on how a monolith can handle events.
+
 
 * Publish / Subscribe
 
@@ -223,6 +286,8 @@ Let's reimplement our sum service with pub / sub.
 Download NATS, unzip and install it in your $PATH
 
 .link https://github.com/nats-io/gnatsd/releases/download/v1.3.0/gnatsd-v1.3.0-linux-amd64.zip
+
+Now let us run the message broker.
 
   ~/go/bin/gnatsd
 
@@ -246,7 +311,7 @@ We again have two services, sumService subscriber and a loadGen publisher.
 
 .code cmd/hakkanats/main.go /70 O/,/80 O/
 
-Note subscribe runs a function as a goroutine.
+Note: subscribe runs a function as a goroutine.
 
 * Running our nats enabled monolith
 
