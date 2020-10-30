@@ -438,11 +438,11 @@ skaffold -p prod run
 
 The above command:
 1. Compiles my code.
-1. Creates a docker container.
+1. Creates and version tags a docker container.
 1. Pushes it to a docker registry.
 1. Creates a deployment in my kubernetes cluster for both
- my application binary and NATS Streaming server.
-1. Checks that kubernetes successfully runs the containers.
+ my application binary version and NATS Streaming server.
+1. Checks that kubernetes successfully runs the correct version containers.
 
 ## Presentation and code download
 
