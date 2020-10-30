@@ -7,7 +7,7 @@ Loh Siu Yin
 Technology Consultant, Beyond Broadcast LLP
 siuyin@beyondbroadcast.com
 
-## Rank the following software engineering challenges: Most difficult first.
+## Rank the following software engineering challenges. Most difficult first.
 - Getting requirements right.
 - Writing the code.
 - Deploying the code (Continuous Integration / Continuous Delivery).
@@ -132,8 +132,8 @@ This is the central idea behind the Hakka Roundhouse
 architecture.
 
 When a function gets too "big":
-1. extract it from the monolith
-1. deploy it as a separate microservice
+1. Extract it from the monolith.
+1. Deploy it as a separate microservice.
 
 ## My deployed Hakka Roundhouse:
 
@@ -157,7 +157,7 @@ We have already seen this:
 .play -edit cmd/trad/main.go
 
 - It is fast, reliable and easy.
-- Well suited for use within a "family"
+- Well suited for use *within* a "family"
  living in a Roundhouse unit.
 
 ## gRPC style Intra-process Call
@@ -172,13 +172,13 @@ parameters.
 
 ## gRPC style External service Call
 
-As previously mentioned if the function gets
+As previously mentioned, if a function gets
 too "big", we can extract it and deploy it as
 an external service.
 
 - Communication is slower and less reliable (depends on the network).
 - Still requires formality of gRPC style protocol buffers.
-- Well suited when communicating across "different" Hakka Roundhouses.
+- Well suited when communicating *across* "different" Hakka Roundhouses.
 
 
 
@@ -189,15 +189,16 @@ procedure call methods.
 
 This is similar to a telephone call when two people wish to communicate.
 
-- Both parties need to be online
-- At the same time
+- both parties need to be online
+- at the same time
 
 Thus local and remote procedure calls are Synchronous.
 
 Software modules can also communicate in a
 "WhatsApp" or "e-mail" fashion.
 
-Event Sourcing and event driven systems are message driven like "e-mail".
+Event Sourcing and event driven systems are message driven
+much like "e-mail" systems.
 
 
 
@@ -342,7 +343,20 @@ Ensure NATS Steaming server is running, then:
 Edit cmd/hakkastream/main.go to select "DeliverAllAvailable"
 then re-run.
 
+## What did we just see?
 
+1. Initially NATS Streaming looked like NATS.
+1. When the DeliverAllAvailable option was run,
+ subService could retrieve all messages from the very first message.
+
+---
+*  DeliverAllAvailable
+*  StartWithLastReceived
+*  StartAtSequence(n)
+*  StartAtTime(t)
+*  StartAtTimeDelta(dur)
+
+Give great flexibility with how past message are retrieved.
 
 ## Discussion
 
@@ -373,7 +387,7 @@ continue seamlessly.
 
 ----
 
-If I used gRPC I would have to queue-up the fast requests,
+If I had used gRPC I would have to queue-up the fast requests,
 then dequeue them to be processed.
 
 gRPC also does not keep a history of requests / messages

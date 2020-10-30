@@ -74,8 +74,8 @@ func sumService() {
 			time.Sleep(10 * time.Millisecond)
 			fmt.Printf("     added: %v+%v = %v\n", r.A, r.B, r.A+r.B)
 		},
-			stan.DurableName("sumService"), // Please remember what I have already received. // HL
-			//stan.DeliverAllAvailable(), // HL
+			//stan.DurableName("sumService"), // Please remember what I have already received. // HL
+			stan.DeliverAllAvailable(), // HL
 		)
 		// 40 OMIT
 		if err != nil {
