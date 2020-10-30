@@ -68,6 +68,7 @@ func sumService() {
 		log.Fatalf("sum encoded conn: %v", err)
 	}
 	c.Subscribe("my-topic", func(r *pb.SumRequest) { // HL
+		time.Sleep(10 * time.Millisecond)
 		fmt.Printf("     added: %v+%v = %v\n", r.A, r.B, r.A+r.B)
 	})
 }
