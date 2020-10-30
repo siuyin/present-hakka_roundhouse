@@ -46,7 +46,10 @@ func loadGen() {
 			req := pb.SumRequest{
 				A: int32(rand.Intn(99)),
 				B: int32(rand.Intn(99))}
-			c.Publish("my-topic", &req) // HL
+			if err := c.Publish("my-topic", &req); err != nil { // HL
+				log.Printf("could not reach server\n")
+				continue
+			}
 			fmt.Printf("Published: %v+%v\n", req.A, req.B)
 			time.Sleep(3 * time.Second)
 		}
