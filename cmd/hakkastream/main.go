@@ -44,7 +44,9 @@ func loadGen() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			sc.Publish("my-topic", b) // HL
+			if err := sc.Publish("my-topic", b); err != nil { // HL
+				log.Fatalf("FATAL: could not publish: %v", err)
+			}
 			fmt.Printf("Published: %v+%v\n", req.A, req.B)
 			time.Sleep(3 * time.Second)
 
@@ -74,8 +76,8 @@ func sumService() {
 			time.Sleep(10 * time.Millisecond)
 			fmt.Printf("     added: %v+%v = %v\n", r.A, r.B, r.A+r.B)
 		},
-			//stan.DurableName("sumService"), // Please remember what I have already received. // HL
-			stan.DeliverAllAvailable(), // HL
+			stan.DurableName("sumService"), // Please remember what I have already received. // HL
+			//stan.DeliverAllAvailable(), // HL
 		)
 		// 40 OMIT
 		if err != nil {

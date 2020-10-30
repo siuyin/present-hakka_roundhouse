@@ -45,9 +45,10 @@ func loadGen() {
 		for {
 			req := pb.SumRequest{
 				A: int32(rand.Intn(99)),
-				B: int32(rand.Intn(99))}
+				B: int32(rand.Intn(99)),
+			}
 			if err := c.Publish("my-topic", &req); err != nil { // HL
-				log.Printf("could not reach server\n")
+				log.Println("ERROR: could not reach NATS server")
 				continue
 			}
 			fmt.Printf("Published: %v+%v\n", req.A, req.B)

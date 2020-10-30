@@ -58,7 +58,7 @@ With this architecture, I know exactly where to find things.
 For a medium-sized project, I deployed only one "Hakka roundhouse".
 
 
-## Hakka Roundhouse
+## Hakka Roundhouses
 
 .image img/hakka-roundhouse.jpg _ 300
 
@@ -71,20 +71,20 @@ For a medium-sized project, I deployed only one "Hakka roundhouse".
 
 .image img/BigBallofMud.png
 
-If you don't take care you get a
-Big Ball of Mud (BBoM) : an unmaintainable mess.
+If you don't take care, you get a
+Big Ball of Mud (BBoM): an unmaintainable mess.
 
 ## Avoiding BBoM: a Microservice ready monolith?
 
 - Can many software modules can "live" within a monolith?
 - _Should_ these modules "live" within a single software repository?
-- Communications within a monolith is certainly fast and reliable
-- But communications with systems outside the monolith relies on the network with ensuing networking lack of guarantees
+- Communications within a monolith is certainly fast and reliable.
+- But communications with systems outside the monolith relies on the network with ensuing networking lack of guarantees.
 - As needs demand, can a software module (sub-folder) can be forked perhaps to a separate repo for it to take on a life of its own?
 
 * Can we build micro-service ready monoliths?
 
-- *Go* has a built-in internal communication process between goroutines -- go channels
+- *Go* has concurrent goroutines which can use channels to communicate between them.
 
 ## Traditional monolith
 
@@ -157,8 +157,14 @@ We have already seen this:
 .play -edit cmd/trad/main.go
 
 - It is fast, reliable and easy.
-- Well suited for use *within* a "family"
+- Well suited for use *within* a function group or "family"
  living in a Roundhouse unit.
+
+I define a function group as a set of functions that
+work to achieve a common goal.
+In a corporate context, we
+may have an Engineering function group but within that group,
+we could have UI/UX, Frontend Dev, Backend Dev, QA/Test etc.
 
 ## gRPC style Intra-process Call
 
@@ -167,7 +173,7 @@ parameters.
 
 - Communication is fast and reliable (intra-process)
 - But is more formal (gRPC style with protocol buffers).
-- Well suited when communicating with *other* families
+- Well suited when communicating with *other* function groups / families
  within the Roundhouse.
 
 ## gRPC style External service Call
@@ -177,6 +183,7 @@ too "big", we can extract it and deploy it as
 an external service.
 
 - Communication is slower and less reliable (depends on the network).
+ However this service can now be scaled independently.
 - Still requires formality of gRPC style protocol buffers.
 - Well suited when communicating *across* "different" Hakka Roundhouses.
 
@@ -184,10 +191,10 @@ an external service.
 
 ## Messaging
 
-Thus far we have only discussed the local or remote
+Thus far, we have only discussed local or remote
 procedure call methods.
 
-This is similar to a telephone call when two people wish to communicate.
+This is similar to a telephone call, when two people wish to communicate.
 
 - both parties need to be online
 - at the same time
@@ -222,6 +229,8 @@ We can distribute ( publish / subscribe to ) messages in two ways:
 
 A publisher can publish to zero or more subscribers.
 
+----
+
 Starting the NATS message broker:
 
 - Download NATS, unzip and install it in your $PATH
@@ -232,17 +241,18 @@ Starting the NATS message broker:
 
   ~/go/bin/nats-server
 
-## Communication within a Roundhouse with NATS
+## NATS communication between function groups within a Roundhouse 
 
 .code cmd/hakkanats/main.go /30 O/,/40 O/
 
-Think of **sumService** and **loadGen** as two families
+Think of **sumService** and **loadGen** as two function groups or families
 within the Roundhouse.
 
 loadGen is shouting out numbers to be added. loadGen
 does not care if anyone is listening.
 
-sumService chose to listen to loadGen by subscribing to loadGen's channel.
+sumService listens to loadGen by subscribing to loadGen's channel.
+
 
 ## loadGen: Publishes numbers to be summed
 
@@ -289,13 +299,15 @@ to run out of memory for longer outages.
 
 ## "WhatsApp Group" style messaging with NATS Streaming
 
-NATS Streaming stores messages:
-1. In memory (for ultimate speed)
-1. On disk (still fast as there is a cache)
-1. In an SQL database (if you want to analyse the message data)
+NATS Streaming server stores messages with one of the following methods:
+1. In memory (for ultimate speed).
+1. On disk (still fast as there is a cache).
+1. In an SQL database (if you want to analyse the message data).
 
-Subscribers need not be online all the time as they can
-retrieve past messages from the NATS Streaming server.
+Subscribers need not be online all the time. 
+Each subscriber can choose to
+retrieve past messages from the NATS Streaming server
+when they connect.
 
 ## Installation and server start-up
 
@@ -401,7 +413,7 @@ to manage:
 2. NATS Streaming server binary
 
 Thus far my application has been running and evolving for the past
-18 months without problems.
+year and a half without problems.
 
 The number of deployables remain at 2. 
 
