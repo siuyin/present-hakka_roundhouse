@@ -1,28 +1,80 @@
-Hakka Roundhouse
+# Hakka Roundhouse
 A microservices ready monolith
-25 Oct 2018
+12 Nov 2020
+Tags: software architecture,tutorial
 
 Loh Siu Yin
 Technology Consultant, Beyond Broadcast LLP
 siuyin@beyondbroadcast.com
 
-* Hakka Roundhouses
+## Rank the following software engineering challenges: Most difficult first.
+- Getting requirements right.
+- Writing the code.
+- Deploying the code (Continuous Integration / Continuous Delivery).
+- Maintaining and extending the code -- continuous value creation.
 
-.image hakka-roundhouse.jpg
+
+## In my case, most challenging first:
+1. Maintaining and extending the code:
+ Requirements constantly evolve and
+ bad architectures slow progress.
+
+1. Getting requirements right:
+ Needs you to understand your user(s).
+ I feel quantity here leads to better
+ quality.
+
+1. Writing the code: Go makes it easier.
+
+1. Deploying the code:
+ There are lots of CI/CD tools.
+ My choice is skaffold with kustomize into kubernetes.
 
 
-* Hakka Roundhouse
+
+
+## Architectures: What we want
+
+.image img/PlannedCity.jpg
+
+## If we are not careful, we get:
+
+.image img/UnplannedCity.jpg
+
+## Can you tell me where the post-offices are?
+
+.image img/PlannedCity.jpg
+
+That was my issue when I used the microservices architecture.
+
+
+
+## I used this architecture instead
+
+.image img/hakka-roundhouse.jpg
+
+With this architecture, I know exactly where to find things.
+
+For a medium-sized project, I deployed only one "Hakka roundhouse".
+
+
+## Hakka Roundhouse
+
+.image img/hakka-roundhouse.jpg _ 300
 
 - Tens of families within a clan live in each house
 - Closed to the outside, open on the inside
 - Issues within an indivdual house are an internal matter -- "easily" solved
 - Issues across roundhouses less easily solved -- war?
 
----
+## What are the pros and cons of software monoliths?  
 
-What are the pros and cons of _software_ monoliths?  
+.image img/BigBallofMud.png
 
-* Microservice ready monolith?
+If you don't take care you get a
+Big Ball of Mud (BBoM) : an unmaintainable mess.
+
+## Avoiding BBoM: a Microservice ready monolith?
 
 - Can many software modules can "live" within a monolith?
 - _Should_ these modules "live" within a single software repository?
@@ -32,288 +84,166 @@ What are the pros and cons of _software_ monoliths?
 
 * Can we build micro-service ready monoliths?
 
-- *go* has a built-in internal communication process between goroutines -- go channels
+- *Go* has a built-in internal communication process between goroutines -- go channels
 
----
-
-- gRPC is a robust, efficient and performant Remote Procedure Call library
-- gRPC tools generate *message* types and function stubs for RPCs
-
-
-- How can we use the message types generate in our goroutines?
-- What do we do with gRPC generated *rpc* stubs? Future use?
-
-* Traditional monolith
+## Traditional monolith
 
 .play -edit cmd/trad/main.go
 
 ---
 
-Why do software monoliths typically grow into an unmanageble mess?
+Why do software monoliths typically grow into an unmanageable mess?
+
 Consider function signatures. Are there any constraints on what they can be?
+
 _Too_ much freedom?
 
-* Hakka Roundhouse monolith
 
-* Hakka Roundhouse monolith
+## Microservice style
 
 .code cmd/hakka/main.go
 
-Wait a minute! What is this pb stuff? Ignore that for the time being.
-What is the function signature? Is there loss of freedom? loss of capability?
+Here I made the **sum** function with gRPC / Protocol Buffers parameters.
 
-* A quick detour -- go modules
+What is the function signature now? Is there loss of freedom? Loss of capability?
 
-* gRPC protocol buffers
+## Here is how to run the code
 
-- This code uses go modules -- the new dependency management experiment.
-The initial go.mod is:
-
-  module github.com/siuyin/present-hakka_roundhouse
-
-- Download, extract and install protoc in you $PATH.
+- Download, extract and install protoc in your $PATH.
 
 .link https://github.com/google/protobuf/releases
 
 - Tell go modules about the grpc dependencies
 
   go get google.golang.org/grpc
+
   go get github.com/golang/protobuf/protoc-gen-go
 
-If you have just cloned a repo, download dependencies with:
-
-  go mod download
-
-
-* .proto file
-- A .proto file defines the contract (interface) between servers and clients.
-
-- In our case we are not (yet) defining a remote procedure call server. We are just going to use protoc generated message definitions.
-
-- Start by thinking about the package name (responsibility / role) you will use to group messages.
-
-I chose package name *arith* (for arithmetic to handle sum, multiply, divide ...).
-file: proto/arith/arith.proto
-
-.code proto/arith/arith.proto /10 O/,/20 O/
-
-* Let us generate gRPC message types and function stubs
-
-  protoc -I proto/arith arith.proto --go_out=plugins=grpc:proto/arith
-
-Notes:
- -I : Include these folders when looking for .proto files
-
-arith.proto : The .proto file we are compiling into stub files
-
---go_out : generate grpc stubs and place them in the proto/arith folder
-
-Let's generate the stub files and look at the results:
-
-  protoc -I proto/arith arith.proto --go_out=plugins=grpc:proto/arith
-  ls -lR proto
-
-We can also keep the command string in the source and do:
-
-  go generate cmd/hakka/main.go
-  ls -lR proto
-
-* Running our new monolith
-
-.code cmd/hakka/main.go
-
-Demo:
+- Run:
 
   go run cmd/hakka/main.go
 
-* That's not a service!
+## Why gRPC style parameters?
 
-* Let's make it a service
+With gRPC style parameters, we can *easily* extract
+the sum function into an external microservice.
 
-Add two random integers and present the results once a second.
+This is the central idea behind the Hakka Roundhouse
+architecture.
 
-.code cmd/hakkasvc/main.go /10 O/,/20 O/
+When a function gets too "big":
+1. extract it from the monolith
+1. deploy it as a separate microservice
 
-We have two services here:
+## My deployed Hakka Roundhouse:
 
-- A load generator service that generate two random integers
-- A sumService which adds the integers
+Did *not* use gRPC sytle parameters.
 
-* Who here are new to goroutines and channels?
+Instead I passed JSON messages.
 
-* Load generator service
+To understand why, we need to understand
+the different ways software modules can communicate with
+each other.
 
-.code cmd/hakkasvc/main.go /30 O/,/40 O/
+## Local Procedure Call
 
-1. Create a request object
+We have already seen this:
 
-2. Send a reference to that object into the channel
+.play -edit cmd/trad/main.go
 
-* sumService
+- It is fast, reliable and easy.
+- Well suited for use within a "family"
+ living in a Roundhouse unit.
 
-.code cmd/hakkasvc/main.go /50 O/,/60 O/
+## gRPC style Intra-process Call
 
-1. read request from the channel
-2. create a response and send its reference
+This is the *local* function with gRPC style
+parameters.
 
-* Running the service monolith
+- Communication is fast and reliable (intra-process)
+- But is more formal (gRPC style with protocol buffers).
+- Well suited when communicating with *other* families
+ within the Roundhouse.
 
-  go run cmd/hakkasvc/main.go
+## gRPC style External service Call
 
-And it is truly a fully self-contained static binary file
+As previously mentioned if the function gets
+too "big", we can extract it and deploy it as
+an external service.
 
-  time CGO_ENABLED=0 go build -o hs -v cmd/hakkasvc/main.go
-  file hs
-  ls -lhF hs
+- Communication is slower and less reliable (depends on the network).
+- Still requires formality of gRPC style protocol buffers.
+- Well suited when communicating across "different" Hakka Roundhouses.
 
-And it is cross-platform
 
-  time CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o hs.exe -v cmd/hakkasvc/main.go
-  file hs.exe
-  ls -lhF hs.exe
 
----
 
-Think about how this single go binary is deployed.
-They are like self-contained jars from java but do not need a JVM to run.
+## Messaging
 
-* Extracting a microservice
+Thus far we have only discussed the local or remote
+procedure call methods.
 
-* Making sumService a microservice
+This is similar to a telephone call when two people wish to communicate.
 
-Steps:
+- Both parties need to be online
+- At the same time
 
-- Update arith.proto to define the SumService interface
-- Implement Sum microservice
-- Update monolith to call the new SumService
+Thus local and remote procedure calls are Synchronous.
 
-* arith.proto service definition
+Software modules can also communicate in a
+"WhatsApp" or "e-mail" fashion.
 
-.code proto/arith/arith.proto /30 O/,/40 O/
+Event Sourcing and event driven systems are message driven like "e-mail".
 
-This says:
 
-- The service Arith can have many functions. One of them is called Sum.
-- Sum takes a SumRequest message as input.
-- Sum returns a SumResponse message as output.
+## Hakka Roundhouse and Event messages
 
-* Sum microservice. File: {servicename}/main.go
+We can distribute ( publish / subscribe to ) messages in two ways:
+1. "Loudspeaker" style -- just shout out the message.
+1. "WhatsApp Group" style -- message the Group and a history
+ of messages is maintained.
 
-.code grpc/arith/main.go /10 O/,/20 O/
 
-1. As usual, we import our generated protocol buffer stub package
-2. For convenience, we have our go generate statement in the source as well.
-3. We need to define a port as this is now a network call. I have chosen to listen on port 50051 on all interfaces -- that is what ":50051" means.
 
-* Service implementation
 
-gRPC tools only generate program stubs. You still need to write the implementation.
+## "Loudspeaker" style messaging with NATS
 
-.code grpc/arith/main.go /30 O/,/40 O/
+"Loudspeaker" fire-and-forget style Pub / Sub enables you to loosely couple components.
 
-compare with the .proto
-
-.code proto/arith/arith.proto /30 O/,/40 O/
-
-Sum takes a (context and a request) and returns a (response and error status). 
-
-Context?
-
-* Server main()
-
-.code grpc/arith/main.go /50 O/,/60 O/
-
-Let's run the service
-
-  go run grpc/arith/main.go
-
-* Updated monolith sumService
-
-.code cmd/hakkasvc2/main.go /52 O/,/53 O/
-
-gRPC returns both a response and an error status
-
-go forces you to consider how to handle error conditions in the mainline of your code. 
-Is this good? bad?
-
-* gRPCSum
-
-.code cmd/hakkasvc2/main.go /70 O/,/80 O/
-
-0, 1: Who do you call?
-2: Instantiate _gRPC-generated_ Client and use it to call the service.
-
-* Running the updated monolith
-
-This will now call our new gRPC based Sum service
-
-  go run cmd/hakkasvc2/main.go
-
----
-
-Now you have two parts that can break.
-
-- The updated hakka roundhouse monolith, which you need to tell where to find the new SumService
-- gRPC-based SumService
-
-* Synchronous vs Asynchronous
-
-- RPCs are synchronous like telephone calls.
-
-- Event Sourcing, Event driven systems are asynchronous like email.
-
----
-
-Which do you prefer?
-When do you use on or the other?
-These are questions for another time.
-
-But now lets focus on how a monolith can handle events.
-
-
-* Publish / Subscribe
-
-* Publish / Subcribe with a monolith
-Actually pub / sub with a monolith *and* a message broker like NATS.
-
-Pub / Sub enables you to loosely couple components.
 A publisher can publish to zero or more subscribers.
 
-Let's reimplement our sum service with pub / sub.
+Starting the NATS message broker:
 
-* Pre-requisites - start a message broker
+- Download NATS, unzip and install it in your $PATH
 
-Download NATS, unzip and install it in your $PATH
+.link https://github.com/nats-io/nats-server/releases/download/v2.1.8/nats-server-v2.1.8-linux-amd64.zip
 
-.link https://github.com/nats-io/gnatsd/releases/download/v1.3.0/gnatsd-v1.3.0-linux-amd64.zip
+- Run the message broker:
 
-Now let us run the message broker.
+  ~/go/bin/nats-server
 
-  ~/go/bin/gnatsd
-
-* monolith with NATS
-
-imports
-
-.code cmd/hakkanats/main.go /10 O/,/20 O/
-
-main()
+## Communication within a Roundhouse with NATS
 
 .code cmd/hakkanats/main.go /30 O/,/40 O/
 
-We again have two services, sumService subscriber and a loadGen publisher.
+Think of **sumService** and **loadGen** as two families
+within the Roundhouse.
 
-* loadGen
+loadGen is shouting out numbers to be added. loadGen
+does not care if anyone is listening.
+
+sumService chose to listen to loadGen by subscribing to loadGen's channel.
+
+## loadGen: Publishes numbers to be summed
 
 .code cmd/hakkanats/main.go /50 O/,/60 O/
 
-* sumService
+## sumService: Adds numbers
 
 .code cmd/hakkanats/main.go /70 O/,/80 O/
 
-Note: subscribe runs a function as a goroutine.
 
-* Running our nats enabled monolith
+## Running our NATS enabled monolith
 
   go run cmd/hakkanats/main.go
 
@@ -322,6 +252,103 @@ Try stopping then re-starting the NATS message broker.
 
 What do you think will happen?
 
-* presentation and code download
+## What did we just see?
+
+1. Pub / Sub worked as expected with NATS was running.
+1. No results were lost after NATS was stopped and restarted.
+
+----
+
+Why?
+
+When NATS client within loadGen could not reach NATS,
+the Client saved the messages in memory.
+
+When it could again connect to NATS,
+it published the saved messages.
+
+This is workable for short NATS outages but is likely
+to run out of memory for longer outages. 
+
+
+
+
+## "WhatsApp Group" style messaging with NATS Streaming
+
+NATS Streaming stores messages:
+1. In memory (for ultimate speed)
+1. On disk (still fast as there is a cache)
+1. In an SQL database (if you want to analyse the message data)
+
+Subscribers need not be online all the time as they can
+retrieve past messages from the NATS Streaming server.
+
+## Installation and server start-up
+
+Install
+
+.link https://github.com/nats-io/nats-streaming-server/releases/download/v0.18.0/nats-streaming-server-v0.18.0-linux-amd64.zip
+
+
+Run
+
+  ~/go/bin/nats-streaming-server
+
+## loadGen with NATS Streaming
+
+.code cmd/hakkastream/main.go /10 O/,/20 O/
+
+I used JSON encoding instead of protocol buffers.
+
+## subService with NAT Streaming
+
+.code cmd/hakkastream/main.go /30 O/,/40 O/
+
+Notice the subcription options:
+ DurableName,
+ DeliverAllAvailable
+
+Other options include:
+ StartWithLastReceived,
+ StartAtSequence(n),
+ StartAtTime(t),
+ StartAtTimeDelta(dur)
+
+## Demo: Hakka Roundhouse monolith with NATS Streaming
+
+main.go:
+
+.code cmd/hakkastream/main.go /s O/,/e O/ 
+
+Ensure NATS Steaming server is running, then:
+
+  go run cmd/hakkastream/main.go
+
+
+## JSON vs Protocol Buffers:
+
+I went with JSON because my application had only 5 major
+function group (Roundhouse "families").
+I could thus avoid the discipline required of protocol buffers.
+Also many publicly available services deliver their
+payloads in JSON.
+
+Protocol Buffers' strict interface definitions are a 
+great advantage when you have many services (> 10) to
+track and evolve.
+
+## Messaging vs RPC
+
+I chose NATS Streaming mainly because my application
+has fast publishers and slow subscribers.
+
+If I used gRPC I would have to queue-up the fast requests,
+then dequeue them to be processed.
+
+gRPC also does not keep a history of requests / messages
+as NATS Streaming server does.
+
+
+## Presentation and code download
 
 .link https://github.com/siuyin/present-hakka_roundhouse

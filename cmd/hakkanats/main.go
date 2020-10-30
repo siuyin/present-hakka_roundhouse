@@ -20,8 +20,8 @@ func init() {
 	natsURL = dflt.EnvString("NATS_URL", "nats://localhost:4222")
 }
 
-//30 OMIT
 //go:generate protoc -I ../../proto/arith arith.proto --go_out=plugins=grpc:../../proto/arith
+//30 OMIT
 func main() {
 	fmt.Println("hakka roundhouse pub/sub service")
 	sumService() // 1 // HL
@@ -30,7 +30,6 @@ func main() {
 }
 
 //40 OMIT
-//50 OMIT
 func loadGen() {
 	nc, err := nats.Connect(natsURL)
 	if err != nil {
@@ -41,6 +40,7 @@ func loadGen() {
 		log.Fatalf("loadGen encoded conn: %v", err)
 	}
 
+	//50 OMIT
 	go func() {
 		for {
 			req := pb.SumRequest{
@@ -48,12 +48,12 @@ func loadGen() {
 				B: int32(rand.Intn(99))}
 			c.Publish("my-topic", &req) // HL
 			fmt.Printf("Published: %v+%v\n", req.A, req.B)
-			time.Sleep(time.Second)
+			time.Sleep(3 * time.Second)
 		}
 	}()
+	//60 OMIT
 }
 
-//60 OMIT
 //70 OMIT
 func sumService() {
 	nc, err := nats.Connect(natsURL)
@@ -65,7 +65,7 @@ func sumService() {
 		log.Fatalf("sum encoded conn: %v", err)
 	}
 	c.Subscribe("my-topic", func(r *pb.SumRequest) { // HL
-		fmt.Printf("%v+%v = %v\n", r.A, r.B, r.A+r.B)
+		fmt.Printf("     added: %v+%v = %v\n", r.A, r.B, r.A+r.B)
 	})
 }
 
