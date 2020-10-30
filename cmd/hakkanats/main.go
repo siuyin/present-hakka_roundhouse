@@ -23,7 +23,7 @@ func init() {
 //go:generate protoc -I ../../proto/arith arith.proto --go_out=plugins=grpc:../../proto/arith
 //30 OMIT
 func main() {
-	fmt.Println("hakka roundhouse pub/sub service")
+	fmt.Println("Hakka Roundhouse with NATS pub/sub service")
 	sumService() // 1 // HL
 	loadGen()    // 2 // HL
 	select {}    // wait forever

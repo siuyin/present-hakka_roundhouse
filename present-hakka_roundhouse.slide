@@ -145,6 +145,11 @@ To understand why, we need to understand
 the different ways software modules can communicate with
 each other.
 
+
+
+
+## Communications
+
 ## Local Procedure Call
 
 We have already seen this:
@@ -177,7 +182,6 @@ an external service.
 
 
 
-
 ## Messaging
 
 Thus far we have only discussed the local or remote
@@ -195,6 +199,11 @@ Software modules can also communicate in a
 
 Event Sourcing and event driven systems are message driven like "e-mail".
 
+
+
+
+
+## Hakka Roundhouse and Messaging
 
 ## Hakka Roundhouse and Event messages
 
@@ -245,8 +254,12 @@ sumService chose to listen to loadGen by subscribing to loadGen's channel.
 
 ## Running our NATS enabled monolith
 
+Ensure NATS server is running, then:
+
   go run cmd/hakkanats/main.go
 
+
+----
 
 Try stopping then re-starting the NATS message broker.
 
@@ -324,14 +337,26 @@ Ensure NATS Steaming server is running, then:
 
   go run cmd/hakkastream/main.go
 
+----
+
+Edit cmd/hakkastream/main.go to select "DeliverAllAvailable"
+then re-run.
+
+
+
+## Discussion
 
 ## JSON vs Protocol Buffers:
 
 I went with JSON because my application had only 5 major
 function group (Roundhouse "families").
+
 I could thus avoid the discipline required of protocol buffers.
+
 Also many publicly available services deliver their
 payloads in JSON.
+
+----
 
 Protocol Buffers' strict interface definitions are a 
 great advantage when you have many services (> 10) to
@@ -342,12 +367,53 @@ track and evolve.
 I chose NATS Streaming mainly because my application
 has fast publishers and slow subscribers.
 
+I can restart my monolith and the subscriber components
+in the monolith can query NATS Streaming server and
+continue seamlessly.
+
+----
+
 If I used gRPC I would have to queue-up the fast requests,
 then dequeue them to be processed.
 
 gRPC also does not keep a history of requests / messages
 as NATS Streaming server does.
 
+## Hakka Roundhouse monolith vs Microservices
+
+With the Hakka Roundhouse architecture, my application had two deployables
+to manage:
+1. The application binary
+2. NATS Streaming server binary
+
+Thus far my application has been running and evolving for the past
+18 months without problems.
+
+The number of deployables remain at 2. 
+
+----
+
+With Microservices, I would have to maintain at least 6 deployables.
+
+If you also make each component of a major function group a microservice,
+then I would have 30 or more deployables to track and maintain.
+
+## Continuous Integration / Continuous Delivery 
+
+I use Skaffold with Kustomize to deploy to a kubernetes cluster.
+The command line being:
+
+skaffold -p prod run 
+
+----
+
+The above command:
+1. Compiles my code
+1. Creates a docker container
+1. Pushes it to a docker registry
+1. Creates a deployment in my kubernetes cluster for both
+ my application binary and NATS Streaming server
+1. Checks that kubernetes successfully runs the containers
 
 ## Presentation and code download
 

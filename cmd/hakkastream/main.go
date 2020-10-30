@@ -18,6 +18,7 @@ const clusterID = "test-cluster"
 
 // s OMIT
 func main() {
+	fmt.Println("Hakka Roundhouse with NATS Streaming service")
 	sumService()
 	loadGen()
 	select {}
