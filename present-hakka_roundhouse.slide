@@ -278,21 +278,22 @@ What do you think will happen?
 
 ## What did we just see?
 
-1. Pub / Sub worked as expected with NATS was running.
-1. No results were lost after NATS was stopped and restarted.
+1. Pub / Sub worked *sometimes* worked as expected with NATS was running.
+1. *Sometimes* results were lost after NATS was stopped and restarted.
 
 ----
 
 Why?
 
 When NATS client within loadGen could not reach NATS,
-the Client saved the messages in memory.
+the Client tried to save messages in memory.
 
 When it could again connect to NATS,
 it published the saved messages.
 
 This is workable for short NATS outages but is likely
 to run out of memory for longer outages. 
+It is also unreliable.
 
 
 
